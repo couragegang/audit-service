@@ -57,11 +57,19 @@ public final class ToolAuditRepository {
             } else {
                 ps.setObject(7, actorUserId);
             }
-            ps.setString(8, metadata == null ? "{}" : json.writeValueAsString(metadata));
+            ps.setString(8, metadata == null ? "{}" : toJson(metadata));
             try (var rs = ps.executeQuery()) {
                 rs.next();
                 return rs.getObject(1, UUID.class);
             }
+        }
+    }
+
+    private String toJson(Map<String, Object> value) throws SQLException {
+        try {
+            return json.writeValueAsString(value);
+        } catch (Exception e) {
+            throw new SQLException("invalid json", e);
         }
     }
 }
