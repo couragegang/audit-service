@@ -1,0 +1,37 @@
+micronaut:
+  application:
+    name: audit-service
+  server:
+    port: 8086
+    context-path: /v1/audit
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+  metrics:
+    enabled: false
+  prometheus:
+    enabled: true
+    sensitive: false
+    path: metrics
+
+datasources:
+  default:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:audit}
+    username: ${DB_USER:audit}
+    password: ${DB_PASSWORD:audit}
+    driver-class-name: org.postgresql.Driver
+
+flyway:
+  datasources:
+    default:
+      enabled: true
+
+audit-service:
+  internal-api-key: ${AUDIT_INTERNAL_API_KEY:dev-internal-key}
