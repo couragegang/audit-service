@@ -12,7 +12,7 @@ public final class HealthInfoController {
         return Map.of(
                 "service", "audit-service",
                 "health", "/v1/audit/health",
-                "metrics", "/v1/audit/metrics",
+                "metrics", "/v1/audit/prometheus",
                 "internal", "/v1/audit/internal/tool-events",
                 "toolEvents", "/v1/audit/orgs/{orgId}/tool-events");
     }
