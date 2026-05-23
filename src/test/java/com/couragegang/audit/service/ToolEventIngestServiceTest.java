@@ -1,12 +1,14 @@
 package com.couragegang.audit.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.couragegang.audit.api.dto.AuditModels.IngestToolEventRequest;
 import com.couragegang.audit.repo.ToolAuditRepository;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,5 +55,18 @@ class ToolEventIngestServiceTest {
                         orgId, wsId, null, "tool_call", "t", "ok", null, null));
 
         assertThat(eventId).isNotNull();
+    }
+
+    @Test
+    void ingestWrapsSqlException() throws Exception {
+        when(events.insert(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenThrow(new SQLException("db"));
+
+        assertThatThrownBy(
+                        () ->
+                                svc.ingest(
+                                        new IngestToolEventRequest(
+                                                orgId, wsId, null, "install", "n", "ok", null, Map.of())))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

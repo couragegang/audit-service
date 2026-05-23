@@ -1,10 +1,12 @@
 package com.couragegang.audit.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.couragegang.audit.repo.ToolAuditRepository;
 import com.couragegang.audit.repo.ToolAuditRepository.ToolEventRow;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -53,5 +55,12 @@ class ToolEventQueryServiceTest {
 
         assertThat(page.items()).hasSize(1);
         assertThat(page.items().getFirst().metadata()).containsEntry("k", "v");
+    }
+
+    @Test
+    void listWrapsSqlException() throws Exception {
+        when(events.listByOrg(orgId, null, 5)).thenThrow(new SQLException("db"));
+
+        assertThatThrownBy(() -> svc.list(orgId, null, 5)).isInstanceOf(IllegalStateException.class);
     }
 }

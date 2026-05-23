@@ -14,23 +14,32 @@ import reactor.core.publisher.Mono;
 class InternalApiKeyFilterTest {
 
     @Test
-    void rejectsInvalidKey() {
-        var filter = new InternalApiKeyFilter("expected");
+    void rejectsMissingHeader() {
+        var filter = new InternalApiKeyFilter("key");
         var chain = mock(ServerFilterChain.class);
 
-        var response =
-                Mono.from(filter.doFilter(HttpRequest.GET("/internal/x").header("X-Audit-Internal-Key", "bad"), chain))
-                        .block();
+        var response = Mono.from(filter.doFilter(HttpRequest.GET("/internal/events"), chain)).block();
 
         assertThat(response.getStatus().getCode()).isEqualTo(HttpStatus.UNAUTHORIZED.getCode());
     }
 
     @Test
-    void proceedsWithValidKey() {
-        var filter = new InternalApiKeyFilter("expected");
+    void rejectsWrongKey() {
+        var filter = new InternalApiKeyFilter("key");
+        var chain = mock(ServerFilterChain.class);
+        var request = HttpRequest.GET("/internal/events").header(InternalApiKeyFilter.HEADER, "wrong");
+
+        var response = Mono.from(filter.doFilter(request, chain)).block();
+
+        assertThat(response.getStatus().getCode()).isEqualTo(HttpStatus.UNAUTHORIZED.getCode());
+    }
+
+    @Test
+    void proceedsWhenKeyValid() {
+        var filter = new InternalApiKeyFilter("key");
         var chain = mock(ServerFilterChain.class);
         when(chain.proceed(org.mockito.ArgumentMatchers.any())).thenReturn(Mono.empty());
-        var request = HttpRequest.GET("/internal/x").header("X-Audit-Internal-Key", "expected");
+        var request = HttpRequest.GET("/internal/events").header(InternalApiKeyFilter.HEADER, "key");
 
         Mono.from(filter.doFilter(request, chain)).block();
 
